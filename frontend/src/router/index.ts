@@ -17,6 +17,7 @@ const Boilerroom = () => import('@/views/boilerroom/index.vue')
 const Leakdetect = () => import('@/views/leakdetect/index.vue')
 const Compensator = () => import('@/views/compensator/index.vue')
 const Heatnotice = () => import('@/views/heatnotice/index.vue')
+const HeatnoticeDetail = () => import('@/views/heatnotice/detail.vue')
 const Heatbilling = () => import('@/views/heatbilling/index.vue')
 const Householdservice = () => import('@/views/householdservice/index.vue')
 
@@ -40,6 +41,7 @@ const router = createRouter({
     { path: '/leakdetect', name: 'leakdetect', component: Leakdetect },
     { path: '/compensator', name: 'compensator', component: Compensator },
     { path: '/heatnotice', name: 'heatnotice', component: Heatnotice },
+    { path: '/heatnotice/:id', name: 'heatnotice-detail', component: HeatnoticeDetail },
     { path: '/heatbilling', name: 'heatbilling', component: Heatbilling },
     { path: '/householdservice', name: 'householdservice', component: Householdservice },
   ],

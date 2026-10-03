@@ -63,8 +63,35 @@
       </tbody>
     </table>
 
+    <section class="reissue-block">
+      <h3>停暖通知撤销 · 待补发清单</h3>
+      <p class="page-desc">停暖通知一旦由值班长撤销，结果会即时反映到这里，按撤销后的口径安排入户补发告知；与停暖通知详情/列表走同一份数据。</p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>来源通知单</th><th>影响片区</th><th>停暖原因</th><th>原计划时段</th>
+            <th>撤销人 / 时间</th><th>撤销原因</th><th>补发状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in reissueRows" :key="item.key">
+            <td>{{ item.通知编号 }}</td>
+            <td>{{ item.影响片区 }}</td>
+            <td>{{ item.停暖原因 }}</td>
+            <td>{{ item.计划开始 }} 至 {{ item.计划恢复 }}</td>
+            <td>{{ item.撤销人 }} / {{ item.撤销时间 }}</td>
+            <td>{{ item.撤销原因 || '—' }}</td>
+            <td><span class="status-tag status-reissue">待补发</span></td>
+          </tr>
+          <tr v-if="!reissueRows.length">
+            <td colspan="7" class="empty-state">暂无因通知撤销产生的待补发事项</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
     <footer class="page-foot">
-      <span>共 {{ total }} 条入户服务记录</span>
+      <span>共 {{ total }} 条入户服务记录，待补发 {{ reissueRows.length }} 条</span>
       <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
     </footer>
   </section>
@@ -79,7 +106,8 @@ import {
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
-import type { EntryRow } from '@/data/types'
+import { reissueItems } from '@/api/heat-notice'
+import type { EntryRow, ReissueItem } from '@/data/types'
 
 const meta = moduleMeta('householdservice')
 const columns = ["服务单号", "报修用户", "服务内容", "受理人", "上门时间", "处理结果", "回访日期", "服务状态"]
@@ -92,6 +120,7 @@ const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+const reissueRows = ref<ReissueItem[]>([])
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
@@ -128,6 +157,8 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    // 待补发清单由已撤销停暖通知实时派生：撤销一发生，进入本页即可看到。
+    reissueRows.value = reissueItems()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '入户服务列表读取失败'
   }

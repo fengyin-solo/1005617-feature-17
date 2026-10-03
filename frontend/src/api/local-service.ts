@@ -30,6 +30,11 @@ export function listEntries(key: string, filters: Record<string, string> = {}): 
 
 export function runAction(key: string, id: number, action: string): ActionResult {
   const meta = moduleMeta(key)
+  // 停暖通知的动作收口在 api/heat-notice.ts：那里有权限、归属和单向状态机，
+  // 通用入口不认它的动作，避免绕过校验直接改状态（包括发布后改回待拟稿）。
+  if (key === 'heatnotice') {
+    return { ok: false, message: '停暖通知单的提交/发布/撤销必须走停暖通知专用窗口，通用流转入口已拒绝' }
+  }
   const target = meta.actionTargets[action]
   if (!target) {
     return { ok: false, message: `${meta.entity}没有登记「${action}」这个动作` }

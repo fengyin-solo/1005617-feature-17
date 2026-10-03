@@ -68,4 +68,31 @@ npm run build
 - 字段、状态、动作与流转目标集中在 `frontend/src/data/modules.ts`；示例数据在
   `frontend/src/data/seed.ts`。
 - 状态流转只允许在 `local-service.ts` 里改，页面组件不做业务判断。
-- 想回到初始数据：清掉浏览器里 `district-heating:entries` 这一项，或调用 `resetModule(模块)`。
+- 想回到初始数据：清掉浏览器里 `district-heating:entries:v2` 这一项，或调用 `resetModule(模块)`。
+
+## 停暖通知的权限与流转收口
+
+停暖通知不再走通用动作入口（`local-service.ts` 对 `heatnotice` 一律拒绝），全部收口在
+`frontend/src/api/heat-notice.ts`，通知列表（`views/heatnotice/index.vue`）与通知详情
+（`views/heatnotice/detail.vue`，路由 `/heatnotice/:id`）取同一份数据：
+
+- **归属与拟稿**：只有本片区值班管理员能登记、修改、提交本片区通知单；影响片区在登记时按其
+  归属片区锁定，谁都不能改。顶栏可切换「值班长 / 城东管理员 / 城西管理员」三种在岗身份。
+- **发布与撤销**：发布（待发布→已发布）、撤销（已发布→已撤销）只收口在值班长；撤销需填原因，
+  撤销后整单转只读；需要调整只能由本片区管理员对撤销单「重新拟稿（另起一条）」，新单为待拟稿
+  并回指来源单号，旧单不复活。
+- **单向状态机**：待拟稿 → 待发布 → 已发布 → 已撤销，回退、跳序、越权改动一律拒绝。
+- **校验**：计划开始/计划恢复必须是 `YYYY-MM-DD HH:mm` 合法时间，且计划恢复晚于计划开始，
+  非法值退回重填。
+- **对外口径**：`publicNotices()` 是唯一对外口径来源，已发布单按发布口径、已撤销单按已撤销
+  口径告知，撤销单不再沿用原发布措辞。
+- **幂等发布**：重复提交发布只记一遍，首发人与首发时间不被覆盖。
+- **入户服务联动**：撤销结果由 `reissueItems()` 实时派生到入户服务页的「停暖通知撤销·待补发
+  清单」。
+
+规则冒烟验证（无需起服务，esbuild 打包服务层后在 Node 里跑 41 条断言）：
+
+```bash
+cd frontend
+node scripts/verify-heat-notice.mjs
+```
