@@ -32,6 +32,16 @@ export type ActionResult = {
   message: string
 }
 
+/** 值班角色：拟稿/修改归值班管理员，发布/撤销归值班长。 */
+export type OperatorRole = '值班管理员' | '值班长'
+
+/** 一次操作的身份上下文：谁、什么角色、值哪个片区。 */
+export type OperatorContext = {
+  operator: string
+  role: OperatorRole
+  area: string
+}
+
 export type OverviewResult = {
   cards: { label: string; value: number }[]
   modules: { name: string; created: number; pending: number; abnormal: number }[]
